@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TES Shift % vs Dry Bulb — True Waterless</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Inter, system-ui, sans-serif; background: #f1f5f9; color: #1e293b; padding: 24px; }
+  h1 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .sub { font-size: 12px; color: #64748b; margin-bottom: 20px; line-height: 1.6; }
+
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 0;
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px;
+  }
+  .ctrl { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 160px; }
+  .ctrl label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
+  .ctrl .val { font-size: 22px; font-weight: 800; color: #0284c7; font-family: monospace; }
+  input[type=range] { width: 100%; accent-color: #0284c7; cursor: pointer; }
+
+  .readout { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: stretch; }
+  .ro-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 16px; flex: 1; min-width: 130px; }
+  .ro-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; margin-bottom: 3px; }
+  .ro-val { font-size: 26px; font-weight: 800; font-family: monospace; line-height: 1; }
+  .ro-sub { font-size: 10px; color: #94a3b8; margin-top: 3px; }
+  .ro-card.highlight { border: 2px solid #0284c7; background: #eff6ff; }
+  .ro-card.highlight .ro-val { color: #0284c7; }
+
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; }
+  .ctitle { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .csub { font-size: 11px; color: #64748b; margin-bottom: 12px; line-height: 1.5; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; font-size: 11px; font-weight: 600; color: #475569; align-items: center; }
+  .lswatch { display: inline-block; width: 26px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+  .insight { margin-top: 14px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 0 8px 8px 0; padding: 9px 13px; font-size: 12px; color: #1e40af; line-height: 1.5; }
+
+  /* bottom summary bar */
+  .summary-bar {
+    margin-top: 16px; background: #1e293b; border-radius: 12px;
+    padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 20px;
+    align-items: flex-start; justify-content: center;
+  }
+  .sum-item { display: flex; flex-direction: column; gap: 3px; align-items: center; text-align: center; }
+  .sum-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; }
+  .sum-val { font-size: 22px; font-weight: 800; font-family: monospace; }
+  .sum-sub { font-size: 10px; color: #64748b; }
+  .sum-divider { width: 1px; background: #334155; align-self: stretch; margin-top: 4px; }
+  .sum-main { font-size: 13px; font-weight: 600; color: #94a3b8; flex: 1; min-width: 200px; line-height: 1.5; }
+  .sum-main strong { color: #f97316; font-size: 18px; }
+  /* orange DR event strip */
+  .orange-strip {
+    margin-top: 12px;
+    width: 66%; margin-left: auto; margin-right: auto;
+    background: linear-gradient(135deg, #c2410c 0%, #ea580c 50%, #c2410c 100%);
+    border-radius: 12px; padding: 18px 32px;
+    display: flex; align-items: flex-start; justify-content: center; gap: 0;
+    box-shadow: 0 4px 20px rgba(234,88,12,0.35);
+  }
+  .ost-item { display: flex; flex-direction: column; gap: 4px; align-items: center; text-align: center; flex: 1; }
+  .ost-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: rgba(255,255,255,0.75); }
+  .ost-val { font-size: 32px; font-weight: 900; font-family: monospace; color: #fff; line-height: 1; }
+  .ost-sub { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+  .ost-divider { width: 1px; background: rgba(255,255,255,0.25); align-self: stretch; margin: 0 32px; }
+  .sum-label--mixed { text-transform: none; }
+  .sum-group-label {
+    font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em;
+    color: #475569; writing-mode: vertical-rl; text-orientation: mixed;
+    transform: rotate(180deg); align-self: center; padding: 4px 0;
+  }
+  .sum-divider--light { background: #263347; }
+</style>
+</head>
+<body>
+
+<img src="https://i.ibb.co/tMw84NRp/Screenshot-2026-06-10-at-10-25-49.png" style="display:block;width:100%;height:auto;margin-bottom:16px">
+<h1>% Mechanical Cooling Shiftable by IceBrick TES vs Dry Bulb Temperature</h1>
+<p class="sub">
+  True Waterless — air-cooled dry cooler + IceBrick TES.<br>
+  The curve rises as DBT approaches the <strong>return temp</strong>. Once DBT ≥ return temp the dry cooler stalls and 100% of load is mechanical — fully shiftable to TES.<br>
+  <strong>Tip: raise Return ΔT (e.g. 25–50°F) to bring the S-curve transition into the 40–110°F window.</strong>
+</p>
+
+<div class="readout" id="readout"></div>
+
+<!-- bottom summary bar -->
+<div class="summary-bar" id="summary-bar">
+  <div class="sum-item">
+    <span class="sum-label">Total Cooling Load</span>
+    <span class="sum-val" id="sum-cool" style="color:#38bdf8">— RT</span>
+    <span class="sum-sub">IT MW ÷ 3.517 kW/RT</span>
+  </div>
+  <div class="sum-divider"></div>
+  <div class="sum-item">
+    <span class="sum-label">Shiftable Cooling</span>
+    <span class="sum-val" id="sum-shift" style="color:#f97316">— RT</span>
+    <span class="sum-sub" id="sum-shift-sub">— MW</span>
+  </div>
+  <div class="sum-divider"></div>
+  <div class="sum-group-label">Footprint</div>
+  <div class="sum-divider sum-divider--light"></div>
+  <div class="sum-item">
+    <span class="sum-label sum-label--mixed">RTh / sq ft</span>
+    <span class="sum-val" style="color:#94a3b8">4.8</span>
+    <span class="sum-sub">constant</span>
+  </div>
+  <div class="sum-divider"></div>
+  <div class="sum-item">
+    <span class="sum-label sum-label--mixed">kWh (e) / sq ft</span>
+    <span class="sum-val" id="sum-kwh-sqft" style="color:#38bdf8">—</span>
+    <span class="sum-sub">4.8 × kW/RT</span>
+  </div>
+  <div class="sum-divider"></div>
+  <div class="sum-group-label">System Size</div>
+  <div class="sum-divider sum-divider--light"></div>
+  <div class="sum-item">
+    <span class="sum-label">4 hr DR Event</span>
+    <span class="sum-val" id="sum-sys-size" style="color:#38bdf8">— RTh</span>
+    <span class="sum-sub">shiftable RT × 4</span>
+  </div>
+  <div class="sum-divider"></div>
+  <div class="sum-item">
+    <span class="sum-label">IceBrick Footprint</span>
+    <span class="sum-val" id="sum-ib-sqft" style="color:#38bdf8">— sq ft</span>
+    <span class="sum-sub">system size ÷ 4.8</span>
+  </div>
+  <div class="sum-divider"></div>
+  <div class="sum-item">
+    <span class="sum-label">Total System Footprint</span>
+    <span class="sum-val" id="sum-total-sqft" style="color:#e2e8f0">— sq ft</span>
+    <span class="sum-sub">Includes IceBrick cells, piping, ancillary pumps and charging chillers</span>
+  </div>
+</div>
+
+<!-- orange highlight strip -->
+<div class="orange-strip">
+  <div class="ost-item">
+    <span class="ost-label">Shiftable MW at DR Event</span>
+    <span class="ost-val" id="sum-shiftmw">— MW</span>
+    <span class="ost-sub" id="sum-shiftmw-sub">at — kW/RT</span>
+  </div>
+  <div class="ost-divider"></div>
+  <div class="ost-item">
+    <span class="ost-label">Shiftable % of Facility Peak</span>
+    <span class="ost-val" id="sum-fppct">—%</span>
+    <span class="ost-sub" id="sum-fpsub">— MW avoided</span>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <div class="ctitle">Shiftable % out of total cooling vs Dry Bulb — active supply temp highlighted</div>
+  <div class="csub">
+    Bold blue = active supply/ΔT curve.
+    <strong style="color:#0284c7">Blue crosshair</strong> = current DBT position on the active curve (moves with DBT slider).
+    <strong style="color:#ef4444">Red dashed</strong> = return temp — where the curve saturates at 100%.
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="controls" style="margin-bottom:14px;">
+  <div class="ctrl">
+    <label>Ambient (Dry Bulb) Temperature</label>
+    <input type="range" id="sl-dbt" min="40" max="110" value="95" step="1">
+    <span class="val" id="lbl-dbt">95°F</span>
+  </div>
+  <div class="ctrl">
+    <label>Supply Temp</label>
+    <input type="range" id="sl-ts" min="32" max="80" value="55" step="1">
+    <span class="val" id="lbl-ts">55°F</span>
+  </div>
+  <div class="ctrl-check">
+    <label>Supply / Return ΔT</label>
+    <div class="check-options">
+      <label class="check-opt">
+        <input type="radio" name="dt" id="dt-10" value="10"> 10°F
+      </label>
+      <label class="check-opt">
+        <input type="radio" name="dt" id="dt-20" value="20" checked> 20°F
+      </label>
+    </div>
+    <span class="val" id="lbl-dt">ΔT 20°F → Return 75°F</span>
+  </div>
+  <div class="ctrl">
+    <label>IT Nameplate</label>
+    <input type="range" id="sl-mw" min="1" max="100" value="10" step="1">
+    <span class="val" id="lbl-mw">10 MW</span>
+  </div>
+  <div class="ctrl">
+    <label>Avoided kW/RT (Refrigeration-Ton) at DR Event</label>
+    <input type="range" id="sl-kw" min="0.7" max="1.6" value="1.0" step="0.05">
+    <span class="val" id="lbl-kw">1.00 kW/RT</span>
+  </div>
+</div>
+  <div style="position:relative;width:100%;height:360px">
+    <canvas id="chart"></canvas>
+  </div>
+  <div class="insight" id="insight"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+<script>
+const F2C  = f => (f - 32) * 5 / 9;
+const dF2C = d => d * 5 / 9;
+const RTKW = 3.517, CP = 4.186;
+
+function calcShift(dbt, ts, dt) {
+  const tr  = ts + dt;
+  const tsC = F2C(ts), trC = F2C(tr), dtC = dF2C(dt);
+  if (Math.abs(dtC) < 0.01) return { pct: 100, freePct: 0, avail: 1000, free: 0, tr };
+  const mf = (1000 * RTKW) / (CP * dtC);
+  let cur = trC, free = 0;
+  if (dbt < tr) {
+    const fo = Math.max(tsC, F2C(dbt) + 3);
+    if (fo < cur) { free = Math.max(0, (mf * CP * (cur - fo)) / RTKW); cur = fo; }
+  }
+  const avail = Math.max(0, (mf * CP * (cur - tsC)) / RTKW);
+  const pct   = Math.min(100, (avail / 1000) * 100);
+  return {
+    pct:     Math.round(pct * 10) / 10,
+    freePct: Math.round(((free / 1000) * 100) * 10) / 10,
+    avail:   Math.round(avail),
+    free:    Math.round(free),
+    tr
+  };
+}
+
+const ACT_COLOR  = '#0284c7';
+const TR_COLOR   = '#ef4444';
+const DOT_COLOR  = '#f97316';
+const DBT_RANGE  = Array.from({ length: 71 }, (_, i) => 40 + i);
+let ann_tr_val   = 75;
+let myChart      = null;
+
+function buildDatasets(ts, dt, dbt) {
+  const active = {
+    label:       `Supply ${ts}°F / Return ${ts+dt}°F`,
+    data:        DBT_RANGE.map(d => ({ x: d, y: calcShift(d, ts, dt).pct })),
+    borderColor: ACT_COLOR,
+    borderWidth: 3.5,
+    borderDash:  [],
+    pointRadius: 0,
+    tension:     0.3,
+    fill:        false,
+    order:       1,
+  };
+  const curPct = calcShift(dbt, ts, dt).pct;
+  const dot = {
+    label:           'current point',
+    data:            [{ x: dbt, y: curPct }],
+    borderColor:     DOT_COLOR,
+    backgroundColor: DOT_COLOR,
+    borderWidth:     3,
+    pointRadius:     8,
+    pointHoverRadius:10,
+    pointStyle:      'circle',
+    showLine:        false,
+    order:           0,
+  };
+  return [active, dot];
+}
+
+function updateLegend(ts, dt) {
+  const swatchActive = `<span class="lswatch" style="background:${ACT_COLOR}"></span>`;
+  const swatchDot    = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${DOT_COLOR};vertical-align:middle;margin-right:5px"></span>`;
+  const swatchTr     = `<span class="lswatch" style="background:repeating-linear-gradient(to right,${TR_COLOR} 0,${TR_COLOR} 5px,transparent 5px,transparent 9px)"></span>`;
+  document.getElementById('legend').innerHTML =
+    `<span>${swatchActive}Supply ${ts}°F / Return ${ts+dt}°F (active)</span>` +
+    `<span>${swatchDot}Current DBT point</span>` +
+    `<span>${swatchTr}Return temp</span>`;
+}
+
+function updateReadout(dbt, ts, dt, mw, fp) {
+  const r = calcShift(dbt, ts, dt);
+  const pctColor = r.pct >= 99 ? '#10b981' : r.pct >= 50 ? '#0284c7' : '#f97316';
+  document.getElementById('readout').innerHTML =
+    roCard('IT Nameplate', mw + ' MW', 'IT load', '#1e293b', false) +
+    roCard('Return Temperature', (ts + dt) + '\u00b0F', 'supply ' + ts + '\u00b0F + \u0394T ' + dt + '\u00b0F', '#ef4444', false) +
+    roCard('Total Facility Peak', fp.toFixed(2) + ' MW', 'IT + ancillary + cooling', '#1e293b', false) +
+    roCard('Shiftable out of total cooling', r.pct.toFixed(1) + '%', `@ DBT ${dbt}°F`, pctColor, true) +
+    roCard('Free cooling', r.freePct.toFixed(1) + '%', `${r.free} RT handled free`, '#10b981', false) +
+    roCard('Mechanical load', r.avail + ' RT', 'remaining after free-cool', '#f97316', false) +
+
+    roCard('DBT vs Return', (dbt >= r.tr ? '+' : '') + (dbt - r.tr) + '°F', dbt >= r.tr ? 'dry cooler stalled' : 'dry cooler active', dbt >= r.tr ? '#ef4444' : '#64748b', false);
+}
+
+function roCard(label, val, sub, color, highlight) {
+  return `<div class="ro-card${highlight ? ' highlight' : ''}">
+    <div class="ro-label">${label}</div>
+    <div class="ro-val" style="color:${color}">${val}</div>
+    <div class="ro-sub">${sub}</div>
+  </div>`;
+}
+
+function updateInsight(dbt, ts, dt) {
+  const r = calcShift(dbt, ts, dt);
+  const margin = r.tr - dbt;
+  document.getElementById('insight').textContent =
+    dbt >= r.tr
+      ? `DBT ${dbt}°F ≥ return temp ${r.tr}°F — dry cooler is bypassed. All ${r.avail} RT is mechanical, 100% shiftable to IceBrick TES.`
+      : `DBT ${dbt}°F is ${margin}°F below return temp ${r.tr}°F — dry cooler removes ${r.freePct}% as free cooling first. The remaining ${r.pct.toFixed(1)}% (${r.avail} RT) is mechanical and shiftable to IceBrick TES.`;
+}
+
+function updateSummary(dbt, ts, dt, mw, kwt) {
+  const r        = calcShift(dbt, ts, dt);
+  const totalRT  = (mw * 1000) / RTKW;
+  const shiftRT  = totalRT * r.pct / 100;
+  const shiftMW  = (shiftRT * kwt / 1000);
+  // Total Facility Peak = IT nameplate + ancillary (15% of IT) + cooling power
+  // cooling power (MW) = shiftRT * 3.517 / kwt / 1000
+  const ancillary = 0.15 * mw;
+  const coolingMW = (shiftRT / kwt) / 1000;
+  const fp        = mw + ancillary + coolingMW;
+  const fpPct     = fp > 0 ? (shiftMW / fp * 100) : 0;
+
+  document.getElementById('sum-cool').textContent       = Math.round(totalRT).toLocaleString() + ' RT';
+  document.getElementById('sum-shift').textContent      = Math.round(shiftRT).toLocaleString() + ' RT';
+  document.getElementById('sum-shift-sub').textContent  = shiftMW.toFixed(2) + ' MW shiftable';
+  // Update readout with mw and fp now that fp is calculated
+  updateReadout(dbt, ts, dt, mw, fp);
+  document.getElementById('sum-shiftmw').textContent      = shiftMW.toFixed(2) + ' MW';
+  document.getElementById('sum-shiftmw-sub').textContent  = 'at ' + kwt.toFixed(2) + ' kW/RT';
+  document.getElementById('sum-fppct').textContent      = fpPct.toFixed(1) + '%';
+  document.getElementById('sum-fpsub').textContent      = shiftMW.toFixed(2) + ' MW avoided';
+
+  // Footprint & system size
+  const RTH_PER_SQFT  = 4.8;
+  const kwhSqft       = RTH_PER_SQFT * kwt;
+  const sysSize       = shiftRT * 4;                      // RTh for 4-hr DR event
+  const ibSqft        = sysSize / RTH_PER_SQFT;          // IceBrick footprint
+  const totalSqft     = ibSqft * 1.6;                    // total system footprint
+
+  document.getElementById('sum-kwh-sqft').textContent   = kwhSqft.toFixed(2);
+  document.getElementById('sum-sys-size').textContent   = Math.round(sysSize).toLocaleString() + ' RTh';
+  document.getElementById('sum-ib-sqft').textContent    = Math.round(ibSqft).toLocaleString() + ' sq ft';
+  document.getElementById('sum-total-sqft').textContent = Math.round(totalSqft).toLocaleString() + ' sq ft';
+}
+
+function initChart(ts, dt, dbt) {
+  ann_tr_val = ts + dt;
+  myChart = new Chart(document.getElementById('chart').getContext('2d'), {
+    type: 'line',
+    data: { datasets: buildDatasets(ts, dt, dbt) },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: 'nearest', intersect: true,
+          filter: item => item.datasetIndex === 1,
+          callbacks: {
+            title: () => `DBT: ${dbt}°F`,
+            label: c  => `Shiftable out of total cooling: ${c.parsed.y.toFixed(1)}%`,
+          }
+        },
+        annotation: {
+          annotations: {
+            vline: {
+              type: 'line', xMin: dbt, xMax: dbt,
+              borderColor: 'rgba(2,132,199,0.35)', borderWidth: 1.5, borderDash: [4, 3],
+              label: { content: `DBT ${dbt}°F`, display: true, position: 'start',
+                font: { size: 14, weight: 'bold' }, color: '#ffffff',
+                backgroundColor: '#0284c7', padding: { x: 10, y: 6 }, borderRadius: 5 }
+            },
+            hline: {
+              type: 'line',
+              yMin: calcShift(dbt, ts, dt).pct,
+              yMax: calcShift(dbt, ts, dt).pct,
+              borderColor: 'rgba(2,132,199,0.35)', borderWidth: 1.5, borderDash: [4, 3],
+              label: {
+                content: calcShift(dbt, ts, dt).pct.toFixed(1) + '%',
+                display: true, position: 'start',
+                font: { size: 14, weight: 'bold' }, color: '#ffffff',
+                backgroundColor: '#0284c7', padding: { x: 10, y: 6 }, borderRadius: 5
+              }
+            },
+            trline: {
+              type: 'line', xMin: ts + dt, xMax: ts + dt,
+              borderColor: TR_COLOR, borderWidth: 1.5, borderDash: [6, 3],
+              label: { content: () => ['RETURN', ann_tr_val + '°F'], display: true, position: 'end',
+                font: { size: 14, weight: 'bold' }, color: '#ffffff',
+                backgroundColor: TR_COLOR, padding: { x: 10, y: 6 }, borderRadius: 5 }
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear', min: 40, max: 110,
+          title: { display: true, text: 'Dry bulb temp (°F)', font: { size: 12 } },
+          ticks: { stepSize: 5, font: { size: 11 } }
+        },
+        y: {
+          min: -5, max: 105,
+          title: { display: true, text: 'Shiftable % out of total cooling', font: { size: 12 } },
+          ticks: { callback: v => (v < 0 || v > 100) ? '' : v + '%', font: { size: 11 }, stepSize: 10 }
+        }
+      }
+    }
+  });
+}
+
+function getSliders() {
+  return {
+    dbt: +document.getElementById('sl-dbt').value,
+    ts:  +document.getElementById('sl-ts').value,
+    dt:  +document.querySelector('input[name="dt"]:checked').value,
+    mw:  +document.getElementById('sl-mw').value,
+    kwt: +document.getElementById('sl-kw').value,
+  };
+}
+
+function updateDOM() {
+  const { dbt, ts, dt, mw, kwt } = getSliders();
+  document.getElementById('lbl-dbt').textContent = dbt + '\u00b0F';
+  document.getElementById('lbl-ts').textContent  = ts  + '\u00b0F';
+  document.getElementById('lbl-dt').textContent  = '\u0394T ' + dt + '\u00b0F \u2192 Return ' + (ts + dt) + '\u00b0F';
+  document.getElementById('lbl-mw').textContent  = mw  + ' MW';
+  document.getElementById('lbl-kw').textContent  = kwt.toFixed(2) + ' kW/RT';
+  updateLegend(ts, dt);
+  updateInsight(dbt, ts, dt);
+  updateSummary(dbt, ts, dt, mw, kwt);
+}
+
+function updateChart() {
+  const { dbt, ts, dt } = getSliders();
+  const tr  = ts + dt;
+  const pct = calcShift(dbt, ts, dt).pct;
+  if (!myChart) { initChart(ts, dt, dbt); return; }
+  const fresh = buildDatasets(ts, dt, dbt);
+  fresh.forEach((ds, i) => {
+    myChart.data.datasets[i].data  = ds.data;
+    myChart.data.datasets[i].label = ds.label;
+  });
+  const ann = myChart.options.plugins.annotation.annotations;
+  ann.vline.xMin          = dbt;
+  ann.vline.xMax          = dbt;
+  ann.vline.label.content = 'DBT ' + dbt + '\u00b0F';
+  ann.hline.yMin          = pct;
+  ann.hline.yMax          = pct;
+  ann.hline.label.content = pct.toFixed(1) + '%';
+  ann_tr_val              = tr;
+  ann.trline.xMin         = tr;
+  ann.trline.xMax         = tr;
+  myChart.update('none');
+}
+
+function rebuild() {
+  updateDOM();
+  if (window.Chart && window.Chart.register) updateChart();
+}
+
+['sl-dbt','sl-ts','sl-mw','sl-kw'].forEach(id =>
+  document.getElementById(id).addEventListener('input', rebuild)
+);
+document.querySelectorAll('input[name="dt"]').forEach(r => r.addEventListener('change', rebuild));
+
+// Populate DOM immediately (no Chart.js needed)
+updateDOM();
+
+// Init chart once Chart.js CDN finishes loading (retry up to 4s)
+function waitForChart(n) {
+  if (window.Chart && window.Chart.register) { updateChart(); }
+  else if (n > 0) { setTimeout(() => waitForChart(n - 1), 100); }
+}
+waitForChart(40);
+</script>
+</body>
+</html>
