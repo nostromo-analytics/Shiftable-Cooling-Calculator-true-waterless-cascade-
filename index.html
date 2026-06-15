@@ -6,7 +6,7 @@
 <title>TES Shift % vs Dry Bulb — True Waterless</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Inter, system-ui, sans-serif; background: #f1f5f9; color: #1e293b; padding: 24px; }
+  body { font-family: Inter, system-ui, sans-serif; background: #d1d5db; color: #1e293b; padding: 24px; }
   h1 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
   .sub { font-size: 12px; color: #64748b; margin-bottom: 20px; line-height: 1.6; }
 
@@ -72,64 +72,8 @@
 </head>
 <body>
 
-<img src="https://i.ibb.co/tMw84NRp/Screenshot-2026-06-10-at-10-25-49.png" style="display:block;width:100%;height:auto;margin-bottom:16px">
-<h1>% Mechanical Cooling Shiftable by IceBrick TES vs Dry Bulb Temperature</h1>
-<p class="sub">
-  True Waterless — air-cooled dry cooler + IceBrick TES.<br>
-  The curve rises as DBT approaches the <strong>return temp</strong>. Once DBT ≥ return temp the dry cooler stalls and 100% of load is mechanical — fully shiftable to TES.<br>
-  <strong>Tip: raise Return ΔT (e.g. 25–50°F) to bring the S-curve transition into the 40–110°F window.</strong>
-</p>
-
-<div class="readout" id="readout"></div>
-
-<!-- bottom summary bar -->
-<div class="summary-bar" id="summary-bar">
-  <div class="sum-item">
-    <span class="sum-label">Total Cooling Load</span>
-    <span class="sum-val" id="sum-cool" style="color:#38bdf8">— RT</span>
-    <span class="sum-sub">IT MW ÷ 3.517 kW/RT</span>
-  </div>
-  <div class="sum-divider"></div>
-  <div class="sum-item">
-    <span class="sum-label">Shiftable Cooling</span>
-    <span class="sum-val" id="sum-shift" style="color:#f97316">— RT</span>
-    <span class="sum-sub" id="sum-shift-sub">— MW</span>
-  </div>
-  <div class="sum-divider"></div>
-  <div class="sum-group-label">Footprint</div>
-  <div class="sum-divider sum-divider--light"></div>
-  <div class="sum-item">
-    <span class="sum-label sum-label--mixed">RTh / sq ft</span>
-    <span class="sum-val" style="color:#94a3b8">4.8</span>
-    <span class="sum-sub">constant</span>
-  </div>
-  <div class="sum-divider"></div>
-  <div class="sum-item">
-    <span class="sum-label sum-label--mixed">kWh (e) / sq ft</span>
-    <span class="sum-val" id="sum-kwh-sqft" style="color:#38bdf8">—</span>
-    <span class="sum-sub">4.8 × kW/RT</span>
-  </div>
-  <div class="sum-divider"></div>
-  <div class="sum-group-label">System Size</div>
-  <div class="sum-divider sum-divider--light"></div>
-  <div class="sum-item">
-    <span class="sum-label">4 hr DR Event</span>
-    <span class="sum-val" id="sum-sys-size" style="color:#38bdf8">— RTh</span>
-    <span class="sum-sub">shiftable RT × 4</span>
-  </div>
-  <div class="sum-divider"></div>
-  <div class="sum-item">
-    <span class="sum-label">IceBrick Footprint</span>
-    <span class="sum-val" id="sum-ib-sqft" style="color:#38bdf8">— sq ft</span>
-    <span class="sum-sub">system size ÷ 4.8</span>
-  </div>
-  <div class="sum-divider"></div>
-  <div class="sum-item">
-    <span class="sum-label">Total System Footprint</span>
-    <span class="sum-val" id="sum-total-sqft" style="color:#e2e8f0">— sq ft</span>
-    <span class="sum-sub">Includes IceBrick cells, piping, ancillary pumps and charging chillers</span>
-  </div>
-</div>
+<p style="font-size:20px;font-weight:700;color:#1e293b;margin-bottom:4px;">Shiftable Power by IceBrick - Calculator</p>
+<p style="font-size:16px;color:#64748b;margin-bottom:20px;">For data centers with True Waterless Cascade (dry coolers + Air Cooled Chillers)</p>
 
 <!-- orange highlight strip -->
 <div class="orange-strip">
@@ -148,11 +92,6 @@
 
 <div class="card" style="margin-top:16px;">
   <div class="ctitle">Shiftable % out of total cooling vs Dry Bulb — active supply temp highlighted</div>
-  <div class="csub">
-    Bold blue = active supply/ΔT curve.
-    <strong style="color:#0284c7">Blue crosshair</strong> = current DBT position on the active curve (moves with DBT slider).
-    <strong style="color:#ef4444">Red dashed</strong> = return temp — where the curve saturates at 100%.
-  </div>
   <div class="legend" id="legend"></div>
   <div class="controls" style="margin-bottom:14px;">
   <div class="ctrl">
@@ -183,15 +122,59 @@
     <span class="val" id="lbl-mw">10 MW</span>
   </div>
   <div class="ctrl">
-    <label>Avoided kW/RT (Refrigeration-Ton) at DR Event</label>
+    <label>Avoided kW/RT at DR Event</label>
     <input type="range" id="sl-kw" min="0.7" max="1.6" value="1.0" step="0.05">
     <span class="val" id="lbl-kw">1.00 kW/RT</span>
   </div>
 </div>
-  <div style="position:relative;width:100%;height:360px">
+  <div style="position:relative;width:100%;height:252px">
     <canvas id="chart"></canvas>
   </div>
-  <div class="insight" id="insight"></div>
+</div>
+
+<div class="readout" id="readout" style="margin-top:16px;"></div>
+
+<!-- bottom summary bar -->
+<div class="summary-bar" id="summary-bar">
+  <div class="sum-item">
+    <span class="sum-label">Total Cooling Load</span>
+    <span class="sum-val" id="sum-cool" style="color:#38bdf8">— RT</span>
+    <span class="sum-sub">IT MW ÷ 3.517 kW/RT</span>
+  </div>
+  <div class="sum-divider"></div>
+  <div class="sum-item">
+    <span class="sum-label">Shiftable Cooling</span>
+    <span class="sum-val" id="sum-shift" style="color:#f97316">— RT</span>
+    <span class="sum-sub" id="sum-shift-sub">— MW</span>
+  </div>
+  <div class="sum-divider"></div>
+  <div class="sum-group-label">Footprint</div>
+  <div class="sum-divider sum-divider--light"></div>
+  <div class="sum-item">
+    <span class="sum-label sum-label--mixed">RTh / sq ft</span>
+    <span class="sum-val" style="color:#94a3b8">7.8</span>
+    <span class="sum-sub">constant · 3 Layers of IceBrick 360</span>
+  </div>
+  <div class="sum-divider"></div>
+  <div class="sum-item">
+    <span class="sum-label sum-label--mixed">kWh (e) / sq ft</span>
+    <span class="sum-val" id="sum-kwh-sqft" style="color:#38bdf8">—</span>
+    <span class="sum-sub">7.8 × kW/RT</span>
+  </div>
+  <div class="sum-divider"></div>
+  <div class="sum-group-label">System Size</div>
+  <div class="sum-divider sum-divider--light"></div>
+  <div class="sum-item">
+    <span class="sum-label">4 hr DR Event</span>
+    <span class="sum-val" id="sum-sys-size" style="color:#38bdf8">— RTh</span>
+    <span class="sum-sub">shiftable RT × 4</span>
+  </div>
+  <div class="sum-divider"></div>
+  <div class="sum-item">
+    <span class="sum-label">IceBrick Footprint</span>
+    <span class="sum-val" id="sum-ib-sqft" style="color:#38bdf8">— sq ft</span>
+    <span class="sum-sub">system size ÷ 7.8</span>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -272,7 +255,6 @@ function updateReadout(dbt, ts, dt, mw, fp) {
   const pctColor = r.pct >= 99 ? '#10b981' : r.pct >= 50 ? '#0284c7' : '#f97316';
   document.getElementById('readout').innerHTML =
     roCard('IT Nameplate', mw + ' MW', 'IT load', '#1e293b', false) +
-    roCard('Return Temperature', (ts + dt) + '\u00b0F', 'supply ' + ts + '\u00b0F + \u0394T ' + dt + '\u00b0F', '#ef4444', false) +
     roCard('Total Facility Peak', fp.toFixed(2) + ' MW', 'IT + ancillary + cooling', '#1e293b', false) +
     roCard('Shiftable out of total cooling', r.pct.toFixed(1) + '%', `@ DBT ${dbt}°F`, pctColor, true) +
     roCard('Free cooling', r.freePct.toFixed(1) + '%', `${r.free} RT handled free`, '#10b981', false) +
@@ -287,15 +269,6 @@ function roCard(label, val, sub, color, highlight) {
     <div class="ro-val" style="color:${color}">${val}</div>
     <div class="ro-sub">${sub}</div>
   </div>`;
-}
-
-function updateInsight(dbt, ts, dt) {
-  const r = calcShift(dbt, ts, dt);
-  const margin = r.tr - dbt;
-  document.getElementById('insight').textContent =
-    dbt >= r.tr
-      ? `DBT ${dbt}°F ≥ return temp ${r.tr}°F — dry cooler is bypassed. All ${r.avail} RT is mechanical, 100% shiftable to IceBrick TES.`
-      : `DBT ${dbt}°F is ${margin}°F below return temp ${r.tr}°F — dry cooler removes ${r.freePct}% as free cooling first. The remaining ${r.pct.toFixed(1)}% (${r.avail} RT) is mechanical and shiftable to IceBrick TES.`;
 }
 
 function updateSummary(dbt, ts, dt, mw, kwt) {
@@ -321,7 +294,7 @@ function updateSummary(dbt, ts, dt, mw, kwt) {
   document.getElementById('sum-fpsub').textContent      = shiftMW.toFixed(2) + ' MW avoided';
 
   // Footprint & system size
-  const RTH_PER_SQFT  = 4.8;
+  const RTH_PER_SQFT  = 7.8;
   const kwhSqft       = RTH_PER_SQFT * kwt;
   const sysSize       = shiftRT * 4;                      // RTh for 4-hr DR event
   const ibSqft        = sysSize / RTH_PER_SQFT;          // IceBrick footprint
@@ -330,7 +303,6 @@ function updateSummary(dbt, ts, dt, mw, kwt) {
   document.getElementById('sum-kwh-sqft').textContent   = kwhSqft.toFixed(2);
   document.getElementById('sum-sys-size').textContent   = Math.round(sysSize).toLocaleString() + ' RTh';
   document.getElementById('sum-ib-sqft').textContent    = Math.round(ibSqft).toLocaleString() + ' sq ft';
-  document.getElementById('sum-total-sqft').textContent = Math.round(totalSqft).toLocaleString() + ' sq ft';
 }
 
 function initChart(ts, dt, dbt) {
@@ -415,7 +387,6 @@ function updateDOM() {
   document.getElementById('lbl-mw').textContent  = mw  + ' MW';
   document.getElementById('lbl-kw').textContent  = kwt.toFixed(2) + ' kW/RT';
   updateLegend(ts, dt);
-  updateInsight(dbt, ts, dt);
   updateSummary(dbt, ts, dt, mw, kwt);
 }
 
@@ -462,5 +433,8 @@ function waitForChart(n) {
 }
 waitForChart(40);
 </script>
+
+<img src="https://i.ibb.co/tMw84NRp/Screenshot-2026-06-10-at-10-25-49.png" style="display:block;width:100%;height:auto;margin-top:16px">
+
 </body>
 </html>
